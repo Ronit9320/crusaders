@@ -3,11 +3,11 @@ local Constants = require("src.constants")
 local Planet = {}
 Planet.__index = Planet
 
---- Creates a new Planet (home base).
+--- Creates a new Planet (home base) at world center.
 function Planet.new()
     local self = setmetatable({}, Planet)
-    self.x = Constants.WINDOW_WIDTH / 2
-    self.y = Constants.WINDOW_HEIGHT / 2
+    self.x = Constants.WORLD_WIDTH / 2
+    self.y = Constants.WORLD_HEIGHT / 2
     self.radius = Constants.PLANET_RADIUS
     self.hp = Constants.PLANET_HP
     self.maxHp = Constants.PLANET_HP
@@ -26,7 +26,9 @@ function Planet:isDestroyed()
     return self.hp <= 0
 end
 
-function Planet:draw()
+--- Draws the planet in world space.
+--- @param camera table
+function Planet:draw(camera)
     love.graphics.setColor(Constants.PLANET_COLOR)
     love.graphics.circle("fill", self.x, self.y, self.radius)
 

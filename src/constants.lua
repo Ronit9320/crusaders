@@ -1,6 +1,8 @@
 return {
     WINDOW_WIDTH = 1280,
     WINDOW_HEIGHT = 720,
+    WORLD_WIDTH = 3000,
+    WORLD_HEIGHT = 3000,
 
     PLANET_RADIUS = 60,
     PLANET_HP = 100,
@@ -8,6 +10,8 @@ return {
 
     PLAYER_RADIUS = 12,
     PLAYER_SPEED = 300,
+    PLAYER_FUEL_MAX = 100,
+    PLAYER_FUEL_DRAIN = 5,
     PLAYER_COLOR = { 0.2, 1.0, 0.2 },
 
     BULLET_RADIUS = 4,
@@ -27,13 +31,18 @@ return {
     FAST_ENEMY_DAMAGE = 10,
     FAST_ENEMY_COLOR = { 1.0, 0.5, 0.0 },
 
-    SPAWN_INTERVAL = 2.0,
-    WAVE_BASE_COUNT = 5,
-    WAVE_INCREMENT = 3,
-    WAVE_DELAY = 5.0,
+    ENEMY_PLANET_RADIUS = 40,
+    ENEMY_PLANET_COLOR = { 0.6, 0.1, 0.1 },
+    ENEMY_PLANET_SPAWN_INTERVAL = 3.0,
+    ENEMY_PLANET_POSITIONS = {
+        { x = 400, y = 400 },
+        { x = 2600, y = 2600 },
+    },
 
-    RESOURCE_RADIUS = 5,
-    RESOURCE_COLOR = { 0.2, 0.2, 1.0 },
+    SCRAP_RADIUS = 5,
+    SCRAP_COLOR = { 0.2, 0.2, 1.0 },
+
+    SCRAP_TO_MONEY_RATE = 1,
 
     DEBUG = false,
 }

@@ -19,19 +19,21 @@ function Bullet.new(x, y, angle)
     return self
 end
 
---- Moves the bullet. Marks dead if off-screen.
+--- Moves the bullet. Marks dead if outside world bounds.
 --- @param dt number
 function Bullet:update(dt)
     self.x = self.x + self.vx * dt
     self.y = self.y + self.vy * dt
 
-    if self.x < -50 or self.x > Constants.WINDOW_WIDTH + 50
-        or self.y < -50 or self.y > Constants.WINDOW_HEIGHT + 50 then
+    if self.x < -50 or self.x > Constants.WORLD_WIDTH + 50
+        or self.y < -50 or self.y > Constants.WORLD_HEIGHT + 50 then
         self.alive = false
     end
 end
 
-function Bullet:draw()
+--- Draws the bullet in world space.
+--- @param camera table
+function Bullet:draw(camera)
     love.graphics.setColor(Constants.BULLET_COLOR)
     love.graphics.circle("fill", self.x, self.y, self.radius)
 end

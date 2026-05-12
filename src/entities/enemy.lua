@@ -5,7 +5,9 @@ Enemy.__index = Enemy
 
 --- Creates a new Enemy of the given type.
 --- @param type string "basic" or "fast"
-function Enemy.new(type)
+--- @param spawnX number|nil Optional spawn x. Random world edge if omitted.
+--- @param spawnY number|nil Optional spawn y.
+function Enemy.new(type, spawnX, spawnY)
     local self = setmetatable({}, Enemy)
     self.type = type
     self.alive = true
@@ -24,29 +26,34 @@ function Enemy.new(type)
         self.color = Constants.FAST_ENEMY_COLOR
     end
 
-    local edge = love.math.random(4)
-    if edge == 1 then
-        self.x = love.math.random(0, Constants.WINDOW_WIDTH)
-        self.y = -self.radius
-    elseif edge == 2 then
-        self.x = love.math.random(0, Constants.WINDOW_WIDTH)
-        self.y = Constants.WINDOW_HEIGHT + self.radius
-    elseif edge == 3 then
-        self.x = -self.radius
-        self.y = love.math.random(0, Constants.WINDOW_HEIGHT)
+    if spawnX and spawnY then
+        self.x = spawnX
+        self.y = spawnY
     else
-        self.x = Constants.WINDOW_WIDTH + self.radius
-        self.y = love.math.random(0, Constants.WINDOW_HEIGHT)
+        local edge = love.math.random(4)
+        if edge == 1 then
+            self.x = love.math.random(0, Constants.WORLD_WIDTH)
+            self.y = -self.radius
+        elseif edge == 2 then
+            self.x = love.math.random(0, Constants.WORLD_WIDTH)
+            self.y = Constants.WORLD_HEIGHT + self.radius
+        elseif edge == 3 then
+            self.x = -self.radius
+            self.y = love.math.random(0, Constants.WORLD_HEIGHT)
+        else
+            self.x = Constants.WORLD_WIDTH + self.radius
+            self.y = love.math.random(0, Constants.WORLD_HEIGHT)
+        end
     end
 
     return self
 end
 
---- Moves the enemy toward the planet center.
+--- Moves the enemy toward the home planet at world center.
 --- @param dt number
 function Enemy:update(dt)
-    local planetX = Constants.WINDOW_WIDTH / 2
-    local planetY = Constants.WINDOW_HEIGHT / 2
+    local planetX = Constants.WORLD_WIDTH / 2
+    local planetY = Constants.WORLD_HEIGHT / 2
     local dx = planetX - self.x
     local dy = planetY - self.y
     local dist = math.sqrt(dx * dx + dy * dy)
@@ -66,7 +73,9 @@ function Enemy:takeDamage(amount)
     end
 end
 
-function Enemy:draw()
+--- Draws the enemy in world space.
+--- @param camera table
+function Enemy:draw(camera)
     love.graphics.setColor(self.color)
     if self.type == "basic" then
         love.graphics.rectangle("fill", self.x - self.radius, self.y - self.radius, self.radius * 2, self.radius * 2)
