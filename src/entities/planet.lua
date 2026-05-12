@@ -54,6 +54,7 @@ end
 --- Draws the planet sprite in world space, scaled to match collision radius.
 --- @param camera table
 function Planet:draw(camera)
+    love.graphics.setColor(1, 1, 1, 1)
     local scale = self.radius * 2 / Constants.PLANET_FRAME_WIDTH
     love.graphics.draw(spritesheet, quads[self.frame], self.x, self.y, 0, scale, scale, Constants.PLANET_FRAME_WIDTH / 2, Constants.PLANET_FRAME_HEIGHT / 2)
 end
