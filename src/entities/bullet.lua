@@ -7,15 +7,18 @@ Bullet.__index = Bullet
 --- @param x number
 --- @param y number
 --- @param angle number Direction in radians.
-function Bullet.new(x, y, angle)
+--- @param color table|nil Optional color override.
+--- @param speed number|nil Optional speed override.
+function Bullet.new(x, y, angle, color, speed)
     local self = setmetatable({}, Bullet)
     self.x = x
     self.y = y
     self.radius = Constants.BULLET_RADIUS
-    self.speed = Constants.BULLET_SPEED
+    self.speed = speed or Constants.BULLET_SPEED
     self.vx = math.cos(angle) * self.speed
     self.vy = math.sin(angle) * self.speed
     self.alive = true
+    self.color = color or Constants.BULLET_COLOR
     return self
 end
 
@@ -34,7 +37,7 @@ end
 --- Draws the bullet in world space.
 --- @param camera table
 function Bullet:draw(camera)
-    love.graphics.setColor(Constants.BULLET_COLOR)
+    love.graphics.setColor(self.color)
     love.graphics.circle("fill", self.x, self.y, self.radius)
 end
 

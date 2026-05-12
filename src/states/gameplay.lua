@@ -6,6 +6,8 @@ local Enemy = require("src.entities.enemy")
 local Scrap = require("src.entities.scrap")
 local Planet = require("src.entities.planet")
 local EnemyPlanet = require("src.entities.enemyplanet")
+local PlanetDefense = require("src.systems.planetdefense")
+local Shop = require("src.ui.shop")
 
 local Gameplay = {}
 Gameplay.__index = Gameplay
@@ -25,6 +27,9 @@ function Gameplay:enter()
 
     self.scrapCount = 0
     self.money = 0
+    self.defense = PlanetDefense.new()
+    self.shop = Shop.new()
+    self.nearPlanet = false
 
     return self
 end
@@ -33,6 +38,10 @@ function Gameplay:exit()
 end
 
 function Gameplay:update(dt)
+    if self.shop:isOpen() then
+        return
+    end
+
     if self.planet:isDestroyed() then
         Game.stateManager:switchTo("gameover", { reason = "planet" })
         return
@@ -44,6 +53,7 @@ function Gameplay:update(dt)
     end
 
     self.camera:follow(self.player, dt)
+    self.planet:update(dt)
 
     if love.mouse.isDown(1) and self.player:canShoot() then
         local angle = self.player:getShotAngle(self.camera)
@@ -62,6 +72,8 @@ function Gameplay:update(dt)
     for _, enemy in ipairs(self.enemies) do
         enemy:update(dt)
     end
+
+    self.defense:update(dt, self.enemies, self.bullets, self.planet.x, self.planet.y)
 
     for _, bullet in ipairs(self.bullets) do
         if bullet.alive then
@@ -117,6 +129,13 @@ function Gameplay:update(dt)
         end
     end
 
+    do
+        local dx = self.player.x - self.planet.x
+        local dy = self.player.y - self.planet.y
+        local dist = math.sqrt(dx * dx + dy * dy)
+        self.nearPlanet = dist < self.player.radius + self.planet.radius + 20
+    end
+
     self:cleanup()
 end
 
@@ -143,6 +162,7 @@ function Gameplay:draw()
     self.camera:apply()
 
     self.planet:draw(self.camera)
+    self.defense:draw(self.planet.x, self.planet.y, self.camera)
 
     for _, ep in ipairs(self.enemyPlanets) do
         ep:draw(self.camera)
@@ -165,6 +185,12 @@ function Gameplay:draw()
     self.camera:unapply()
 
     self:drawUI()
+
+    if self.nearPlanet and not self.shop:isOpen() then
+        self.shop:drawPrompt()
+    end
+
+    self.shop:draw(self.money, self.defense.level)
 end
 
 function Gameplay:drawUI()
@@ -194,6 +220,27 @@ function Gameplay:drawUI()
 end
 
 function Gameplay:keypressed(key)
+    if key == "e" then
+        if self.shop:isOpen() then
+            self.shop:close()
+        elseif self.nearPlanet then
+            self.shop:toggle()
+        end
+    end
+    if key == "escape" then
+        self.shop:close()
+    end
+end
+
+function Gameplay:mousepressed(x, y, button)
+    if not self.shop:isOpen() then return end
+    if button ~= 1 then return end
+
+    local success, newMoney, newLevel = self.shop:tryBuy(self.money, self.defense.level)
+    if success then
+        self.money = newMoney
+        self.defense.level = newLevel
+    end
 end
 
 return Gameplay
