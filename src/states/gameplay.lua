@@ -12,6 +12,8 @@ local Shop = require("src.ui.shop")
 local Gameplay = {}
 Gameplay.__index = Gameplay
 
+local TILE_SIZE = 200
+
 function Gameplay:enter()
     self.camera = Camera.new()
     self.planet = Planet.new()
@@ -30,6 +32,7 @@ function Gameplay:enter()
     self.defense = PlanetDefense.new()
     self.shop = Shop.new()
     self.nearPlanet = false
+    self.background = love.graphics.newImage("assets/background/background.png")
 
     return self
 end
@@ -161,6 +164,8 @@ end
 function Gameplay:draw()
     self.camera:apply()
 
+    self:drawBackground()
+
     self.planet:draw(self.camera)
     self.defense:draw(self.planet.x, self.planet.y, self.camera)
 
@@ -191,6 +196,26 @@ function Gameplay:draw()
     end
 
     self.shop:draw(self.money, self.defense.level)
+end
+
+function Gameplay:drawBackground()
+    love.graphics.setColor(1, 1, 1, 1)
+
+    local camLeft = self.camera.x - Constants.WINDOW_WIDTH / 2
+    local camTop = self.camera.y - Constants.WINDOW_HEIGHT / 2
+    local camRight = self.camera.x + Constants.WINDOW_WIDTH / 2
+    local camBottom = self.camera.y + Constants.WINDOW_HEIGHT / 2
+
+    local startX = math.max(0, math.floor(camLeft / TILE_SIZE) * TILE_SIZE)
+    local startY = math.max(0, math.floor(camTop / TILE_SIZE) * TILE_SIZE)
+    local endX = math.min(Constants.WORLD_WIDTH, camRight + TILE_SIZE)
+    local endY = math.min(Constants.WORLD_HEIGHT, camBottom + TILE_SIZE)
+
+    for x = startX, endX - TILE_SIZE, TILE_SIZE do
+        for y = startY, endY - TILE_SIZE, TILE_SIZE do
+            love.graphics.draw(self.background, x, y)
+        end
+    end
 end
 
 function Gameplay:drawUI()
