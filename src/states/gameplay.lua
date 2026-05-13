@@ -24,7 +24,7 @@ function Gameplay:enter()
     self.enemyPlanets = {}
 
     for _, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
-        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y))
+        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite))
     end
 
     self.scrapCount = 0

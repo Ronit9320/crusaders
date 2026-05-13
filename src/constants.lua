@@ -35,11 +35,14 @@ return {
     FAST_ENEMY_COLOR = { 1.0, 0.5, 0.0 },
 
     ENEMY_PLANET_RADIUS = 40,
-    ENEMY_PLANET_COLOR = { 0.6, 0.1, 0.1 },
     ENEMY_PLANET_SPAWN_INTERVAL = 3.0,
+    ENEMY_PLANET_FRAME_DURATION = 0.05,
+    ENEMY_PLANET_FRAME_COUNT = 50,
+    ENEMY_PLANET_FRAME_WIDTH = 100,
+    ENEMY_PLANET_FRAME_HEIGHT = 100,
     ENEMY_PLANET_POSITIONS = {
-        { x = 400, y = 400 },
-        { x = 2600, y = 2600 },
+        { x = 400, y = 400, sprite = 1 },
+        { x = 2600, y = 2600, sprite = 2 },
     },
 
     SCRAP_RADIUS = 5,
