@@ -27,7 +27,7 @@ main.lua
   └── Game.stateManager (statemanager.lua)
         ├── "gameplay" (gameplay.lua)
         │     ├── camera.lua          — world-to-screen transform
-        │     ├── player.lua          — ship movement, shooting, fuel
+        │     ├── player.lua          — ship movement, shooting, fuel, integrity
         │     ├── planet.lua          — home base with HP
         │     ├── bullet.lua          — projectiles (player + defense)
         │     ├── enemy.lua           — basic & fast enemies
@@ -45,11 +45,11 @@ main.lua
 
 1. Early return if shop is open (game paused)
 2. Check planet destruction → game over
-3. Update player (movement, fuel drain, shoot input)
-4. Check if player fuel death triggered state switch
+3. Update player (rotation, thrust, fuel drain, integrity, speed cap)
+4. Check if player integrity death triggered state switch
 5. Update camera (smooth follow)
 6. Update planet animation
-7. Handle player shooting (left mouse)
+7. Handle player shooting (left mouse, fires in ship's facing direction)
 8. Update all bullets (movement + bounds check)
 9. Update enemy planets (spawn timer)
 10. Update all enemies (movement toward planet)
@@ -73,9 +73,27 @@ main.lua
 8. Bullets
 9. Player ship
 10. `camera:unapply()` — return to screen space
-11. `drawUI()` — HUD (HP, scrap, money, fuel bar)
+11. `drawUI()` — HUD (planet HP, scrap count, money, integrity %, fuel tonnes, speed)
 12. Shop prompt ("Press E")
 13. Shop overlay (if open)
+
+## Controls
+
+| Key        | Action                                                    |
+|------------|-----------------------------------------------------------|
+| W          | Both engines fire — full thrust forward                   |
+| A          | Left engine fires — rotate left + partial thrust forward  |
+| D          | Right engine fires — rotate right + partial thrust forward|
+| E          | Open/close shop (when near planet)                        |
+| ESC        | Close shop                                                |
+| Left mouse | Shoot in ship's facing direction                          |
+
+## Game Over Reasons
+
+| Reason     | Trigger                                            |
+|------------|----------------------------------------------------|
+| `planet`   | Home planet HP reaches 0                           |
+| `integrity`| Player ship integrity reaches 0 (excessive speed)  |
 
 ## Constants (`src/constants.lua`)
 
@@ -83,7 +101,7 @@ Every tunable value (speeds, sizes, colors, timers, costs) lives in a single tab
 
 ```lua
 local Constants = require("src.constants")
--- Constants.PLAYER_SPEED, Constants.BULLET_COLOR, etc.
+-- Constants.PLAYER_THRUST, Constants.BULLET_COLOR, etc.
 ```
 
 ### Debug Mode
@@ -132,3 +150,5 @@ Game.stateManager:register("mystate", MyState)
 - No Love2D objects (images, sounds) as globals.
 - All world-space draws must be between `camera:apply()` and `camera:unapply()`.
 - All screen-space draws (UI) must be after `camera:unapply()`.
+- The player ship has no brake thruster — to slow down, rotate and thrust opposite to your velocity.
+- Fuel depletion disables engines but is not game over. The ship drifts until integrity fails.
