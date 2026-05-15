@@ -3,7 +3,7 @@ local Constants = require("src.constants")
 local Planet = {}
 Planet.__index = Planet
 
-local spritesheet = love.graphics.newImage("assets/planet/home_planet.png")
+local spritesheet = love.graphics.newImage("assets/planet/home_planetv2.png")
 local quads = {}
 for i = 0, Constants.PLANET_FRAME_COUNT - 1 do
     quads[i + 1] = love.graphics.newQuad(
