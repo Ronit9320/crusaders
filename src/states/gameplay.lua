@@ -223,25 +223,11 @@ function Gameplay:drawUI()
     love.graphics.print("Planet HP: " .. self.planet.hp .. "/" .. self.planet.maxHp, 10, 10)
     love.graphics.print("Scraps: " .. self.scrapCount, 10, 30)
     love.graphics.print("Money: " .. self.money, 10, 50)
+    love.graphics.print("Integrity: " .. math.floor(self.player.integrity / self.player.maxIntegrity * 100) .. "%", 10, 70)
+    love.graphics.print("Fuel: " .. string.format("%.2f", self.player.fuel) .. " t", 10, 90)
 
-    local barX, barY = 10, 70
-    local barW, barH = 100, 12
-    local fuelRatio = self.player.fuel / self.player.maxFuel
-
-    love.graphics.setColor(0.4, 0.4, 0.4)
-    love.graphics.rectangle("fill", barX, barY, barW, barH)
-
-    if fuelRatio > 0.3 then
-        love.graphics.setColor(0.2, 0.8, 0.2)
-    elseif fuelRatio > 0.15 then
-        love.graphics.setColor(0.8, 0.8, 0.2)
-    else
-        love.graphics.setColor(0.8, 0.2, 0.2)
-    end
-    love.graphics.rectangle("fill", barX, barY, barW * fuelRatio, barH)
-
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Fuel", barX + barW + 5, barY)
+    local speed = math.sqrt(self.player.vx * self.player.vx + self.player.vy * self.player.vy)
+    love.graphics.print("Speed: " .. math.floor(speed), 10, 110)
 end
 
 function Gameplay:keypressed(key)

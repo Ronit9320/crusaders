@@ -13,49 +13,62 @@ function Player.new()
     self.vy = 0
     self.angle = -math.pi / 2
     self.cooldown = 0
-    self.fuel = Constants.PLAYER_FUEL_MAX
-    self.maxFuel = Constants.PLAYER_FUEL_MAX
+    self.integrity = Constants.SHIP_INTEGRITY_MAX
+    self.maxIntegrity = Constants.SHIP_INTEGRITY_MAX
+    self.fuel = Constants.SHIP_FUEL_MAX
+    self.maxFuel = Constants.SHIP_FUEL_MAX
     return self
 end
 
---- Updates player rotation, velocity, position, cooldown, and fuel.
---- Triggers game over if fuel reaches 0.
+--- Updates player rotation, velocity, position, cooldown, integrity, and fuel.
+--- Triggers game over if integrity reaches 0.
 --- @param dt number Delta time in seconds.
 function Player:update(dt)
-    local thrusting = false
+    local hasFuel = self.fuel > 0
+    local enginesActive = 0
     local thrustForward = 0
     local rotation = 0
 
     if love.keyboard.isDown("a") then
-        rotation = rotation - Constants.PLAYER_ROTATION_SPEED
-        thrusting = true
+        rotation = rotation - 1
+        enginesActive = enginesActive + 1
     end
     if love.keyboard.isDown("d") then
-        rotation = rotation + Constants.PLAYER_ROTATION_SPEED
-        thrusting = true
+        rotation = rotation + 1
+        enginesActive = enginesActive + 1
     end
-
     if love.keyboard.isDown("w") then
-        thrustForward = Constants.PLAYER_THRUST
-        thrusting = true
-    elseif love.keyboard.isDown("a") or love.keyboard.isDown("d") then
-        thrustForward = Constants.PLAYER_SINGLE_THRUST
+        enginesActive = enginesActive + 2
     end
-
-    self.angle = self.angle + rotation * dt
-
-    if thrustForward > 0 then
-        self.vx = self.vx + math.cos(self.angle) * thrustForward * dt
-        self.vy = self.vy + math.sin(self.angle) * thrustForward * dt
-    end
-
     if love.keyboard.isDown("space") then
-        local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
-        if speed > 0 then
-            self.vx = self.vx - (self.vx / speed) * Constants.PLAYER_BRAKE_THRUST * dt
-            self.vy = self.vy - (self.vy / speed) * Constants.PLAYER_BRAKE_THRUST * dt
+        enginesActive = enginesActive + 1
+    end
+
+    local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+    local t = math.min(speed / Constants.PLAYER_MAX_SPEED, 1)
+    local rotSpeed = Constants.PLAYER_ROTATION_SPEED * (1 - t) + Constants.PLAYER_ROTATION_MIN_SPEED * t
+
+    self.angle = self.angle + rotation * rotSpeed * dt
+
+    if hasFuel then
+        if love.keyboard.isDown("w") then
+            thrustForward = Constants.PLAYER_THRUST
+        elseif love.keyboard.isDown("a") or love.keyboard.isDown("d") then
+            thrustForward = Constants.PLAYER_SINGLE_THRUST
         end
-        thrusting = true
+
+        if thrustForward > 0 then
+            self.vx = self.vx + math.cos(self.angle) * thrustForward * dt
+            self.vy = self.vy + math.sin(self.angle) * thrustForward * dt
+        end
+
+        if love.keyboard.isDown("space") then
+            local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+            if speed > 0 then
+                self.vx = self.vx - (self.vx / speed) * Constants.PLAYER_BRAKE_THRUST * dt
+                self.vy = self.vy - (self.vy / speed) * Constants.PLAYER_BRAKE_THRUST * dt
+            end
+        end
     end
 
     local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
@@ -85,12 +98,27 @@ function Player:update(dt)
 
     self.cooldown = math.max(0, self.cooldown - dt)
 
-    if thrusting then
-        self.fuel = math.max(0, self.fuel - Constants.PLAYER_FUEL_DRAIN * dt)
+    if enginesActive > 0 then
+        self.fuel = math.max(0, self.fuel - Constants.ENGINE_FUEL_DRAIN * enginesActive * dt)
     end
 
-    if self.fuel <= 0 then
-        Game.stateManager:switchTo("gameover", { reason = "fuel" })
+    do
+        local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+        local loss = 0
+        if speed > 1000 then
+            loss = 30 * dt
+        elseif speed > 800 then
+            loss = 4 * dt
+        elseif speed > 600 then
+            loss = 1 * dt
+        end
+        if loss > 0 then
+            self.integrity = math.max(0, self.integrity - loss)
+        end
+    end
+
+    if self.integrity <= 0 then
+        Game.stateManager:switchTo("gameover", { reason = "integrity" })
     end
 end
 
