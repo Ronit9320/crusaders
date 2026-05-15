@@ -59,7 +59,7 @@ function Gameplay:update(dt)
     self.planet:update(dt)
 
     if love.mouse.isDown(1) and self.player:canShoot() then
-        local angle = self.player:getShotAngle(self.camera)
+        local angle = self.player.angle
         table.insert(self.bullets, Bullet.new(self.player.x, self.player.y, angle))
         self.player:resetCooldown()
     end
