@@ -40,10 +40,6 @@ function Player:update(dt)
     if love.keyboard.isDown("w") then
         enginesActive = enginesActive + 2
     end
-    if love.keyboard.isDown("space") then
-        enginesActive = enginesActive + 1
-    end
-
     local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
     local t = math.min(speed / Constants.PLAYER_MAX_SPEED, 1)
     local rotSpeed = Constants.PLAYER_ROTATION_SPEED * (1 - t) + Constants.PLAYER_ROTATION_MIN_SPEED * t
@@ -60,14 +56,6 @@ function Player:update(dt)
         if thrustForward > 0 then
             self.vx = self.vx + math.cos(self.angle) * thrustForward * dt
             self.vy = self.vy + math.sin(self.angle) * thrustForward * dt
-        end
-
-        if love.keyboard.isDown("space") then
-            local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
-            if speed > 0 then
-                self.vx = self.vx - (self.vx / speed) * Constants.PLAYER_BRAKE_THRUST * dt
-                self.vy = self.vy - (self.vy / speed) * Constants.PLAYER_BRAKE_THRUST * dt
-            end
         end
     end
 
