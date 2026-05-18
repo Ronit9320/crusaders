@@ -49,15 +49,18 @@ return {
     BOMBER_COLOR = { 0.9, 0.5, 0.1 },
 
     ENEMY_PLANET_RADIUS = 40,
-    ENEMY_PLANET_SPAWN_INTERVAL = 6.0,
+    ENEMY_SPAWN_INTERVAL_START = 8.0,
+    ENEMY_SPAWN_INTERVAL_MIN = 2.0,
+    ENEMY_SPAWN_ESCALATION_TIME = 30.0,
+    ENEMY_SPAWN_ESCALATION_STEP = 0.5,
     ENEMY_PLANET_FRAME_DURATION = 0.05,
     ENEMY_PLANET_FRAME_COUNT = 50,
     ENEMY_PLANET_FRAME_WIDTH = 100,
     ENEMY_PLANET_FRAME_HEIGHT = 100,
     ENEMY_PLANET_POSITIONS = {
-        { x = 1500, y = 1500, sprite = 1, spawnInterval = 6.0 },
-        { x = 6500, y = 1500, sprite = 2, spawnInterval = 4.0 },
-        { x = 4000, y = 7000, sprite = 1, spawnInterval = 3.0 },
+        { x = 1500, y = 1500, sprite = 1, difficulty = 0.5 },
+        { x = 6500, y = 1500, sprite = 2, difficulty = 1.0 },
+        { x = 4000, y = 7000, sprite = 1, difficulty = 1.5 },
     },
 
     SCRAP_RADIUS = 5,

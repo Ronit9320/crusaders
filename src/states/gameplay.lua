@@ -29,7 +29,7 @@ function Gameplay:enter()
     self.enemyPlanets = {}
 
     for _, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
-        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.spawnInterval))
+        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.difficulty))
         for _ = 1, Constants.FUEL_CANISTER_COUNT do
             local angle = love.math.random() * math.pi * 2
             local dist = love.math.random() * Constants.FUEL_CANISTER_SPREAD

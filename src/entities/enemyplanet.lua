@@ -25,25 +25,35 @@ EnemyPlanet.__index = EnemyPlanet
 --- @param x number
 --- @param y number
 --- @param spriteIndex number 1 or 2
---- @param spawnInterval number|nil Seconds between spawns.
-function EnemyPlanet.new(x, y, spriteIndex, spawnInterval)
+--- @param difficulty number Spawn rate escalation multiplier.
+function EnemyPlanet.new(x, y, spriteIndex, difficulty)
     local self = setmetatable({}, EnemyPlanet)
     self.x = x
     self.y = y
     self.radius = Constants.ENEMY_PLANET_RADIUS
     self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
-    self.spawnInterval = spawnInterval or Constants.ENEMY_PLANET_SPAWN_INTERVAL
-    self.spawnTimer = love.math.random() * self.spawnInterval
+    self.difficulty = difficulty or 1.0
+    self.spawnTimer = love.math.random() * Constants.ENEMY_SPAWN_INTERVAL_START
+    self.elapsedTime = 0
     self.spriteIndex = spriteIndex or 1
     self.frame = 1
     self.frameTimer = 0
     return self
 end
 
+--- Returns the current spawn interval based on elapsed time and difficulty.
+--- @return number
+function EnemyPlanet:getSpawnInterval()
+    local escalations = math.floor(self.elapsedTime / Constants.ENEMY_SPAWN_ESCALATION_TIME)
+    local step = Constants.ENEMY_SPAWN_ESCALATION_STEP * self.difficulty
+    return math.max(Constants.ENEMY_SPAWN_INTERVAL_MIN, Constants.ENEMY_SPAWN_INTERVAL_START - escalations * step)
+end
+
 --- Updates the spawn timer and animation frame.
 --- @param dt number
 --- @param enemies table List to insert spawned enemies into.
 function EnemyPlanet:update(dt, enemies)
+    self.elapsedTime = self.elapsedTime + dt
     self.frameTimer = self.frameTimer + dt
     if self.frameTimer >= Constants.ENEMY_PLANET_FRAME_DURATION then
         self.frameTimer = self.frameTimer - Constants.ENEMY_PLANET_FRAME_DURATION
@@ -53,8 +63,9 @@ function EnemyPlanet:update(dt, enemies)
         end
     end
 
+    local spawnInterval = self:getSpawnInterval()
     self.spawnTimer = self.spawnTimer + dt
-    if self.spawnTimer >= self.spawnInterval then
+    if self.spawnTimer >= spawnInterval then
         self.spawnTimer = 0
         local enemyType = love.math.random() < 0.3 and "bomber" or "fighter"
         table.insert(enemies, Enemy.new(enemyType, self.x, self.y))
