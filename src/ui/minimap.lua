@@ -40,7 +40,11 @@ function Minimap:draw(player, homePlanet, enemyPlanets, enemies)
     for _, ep in ipairs(enemyPlanets) do
         local ex = mx + ep.x * scale
         local ey = my + ep.y * scale
-        love.graphics.setColor(1.0, 0.2, 0.2)
+        if ep.alive then
+            love.graphics.setColor(1.0, 0.2, 0.2)
+        else
+            love.graphics.setColor(0.4, 0.4, 0.4)
+        end
         love.graphics.circle("fill", ex, ey, 5)
     end
 

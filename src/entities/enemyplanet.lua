@@ -21,11 +21,20 @@ end
 local EnemyPlanet = {}
 EnemyPlanet.__index = EnemyPlanet
 
---- Creates a new indestructible enemy planet at the given world position.
+--- Returns max HP for the given difficulty.
+--- @param difficulty number
+--- @return number
+local function getMaxHp(difficulty)
+    if difficulty >= 1.5 then return Constants.COLONY_HP_HARD end
+    if difficulty >= 1.0 then return Constants.COLONY_HP_MEDIUM end
+    return Constants.COLONY_HP_EASY
+end
+
+--- Creates a new destructible enemy planet at the given world position.
 --- @param x number
 --- @param y number
 --- @param spriteIndex number 1 or 2
---- @param difficulty number Spawn rate escalation multiplier.
+--- @param difficulty number Spawn rate escalation multiplier and HP scaling.
 function EnemyPlanet.new(x, y, spriteIndex, difficulty)
     local self = setmetatable({}, EnemyPlanet)
     self.x = x
@@ -33,6 +42,9 @@ function EnemyPlanet.new(x, y, spriteIndex, difficulty)
     self.radius = Constants.ENEMY_PLANET_RADIUS
     self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
     self.difficulty = difficulty or 1.0
+    self.alive = true
+    self.maxHp = getMaxHp(self.difficulty)
+    self.hp = self.maxHp
     self.spawnTimer = love.math.random() * Constants.ENEMY_SPAWN_INTERVAL_START
     self.elapsedTime = 0
     self.spriteIndex = spriteIndex or 1
@@ -49,7 +61,18 @@ function EnemyPlanet:getSpawnInterval()
     return math.max(Constants.ENEMY_SPAWN_INTERVAL_MIN, Constants.ENEMY_SPAWN_INTERVAL_START - escalations * step)
 end
 
---- Updates the spawn timer and animation frame.
+--- Applies damage. Sets alive = false when HP reaches 0.
+--- @param amount number
+function EnemyPlanet:takeDamage(amount)
+    if not self.alive then return end
+    self.hp = self.hp - amount
+    if self.hp <= 0 then
+        self.hp = 0
+        self.alive = false
+    end
+end
+
+--- Updates the spawn timer and animation frame. Skips spawning when dead.
 --- @param dt number
 --- @param enemies table List to insert spawned enemies into.
 function EnemyPlanet:update(dt, enemies)
@@ -63,6 +86,8 @@ function EnemyPlanet:update(dt, enemies)
         end
     end
 
+    if not self.alive then return end
+
     local spawnInterval = self:getSpawnInterval()
     self.spawnTimer = self.spawnTimer + dt
     if self.spawnTimer >= spawnInterval then
@@ -72,7 +97,7 @@ function EnemyPlanet:update(dt, enemies)
     end
 end
 
---- Draws the enemy planet in world space.
+--- Draws the enemy planet in world space. Dead planets get a dark overlay.
 --- @param camera table
 function EnemyPlanet:draw(camera)
     love.graphics.setColor(1, 1, 1, 1)
@@ -80,6 +105,32 @@ function EnemyPlanet:draw(camera)
     love.graphics.draw(spritesheets[self.spriteIndex], quads[self.spriteIndex][self.frame],
         self.x, self.y, 0, scale, scale,
         Constants.ENEMY_PLANET_FRAME_WIDTH / 2, Constants.ENEMY_PLANET_FRAME_HEIGHT / 2)
+
+    if not self.alive then
+        love.graphics.setColor(0, 0, 0, 0.5)
+        love.graphics.circle("fill", self.x, self.y, self.radius)
+        return
+    end
+
+    local barW = self.radius * 2.5
+    local barH = 4
+    local barX = self.x - barW / 2
+    local barY = self.y - self.radius - 10
+
+    love.graphics.setColor(0.3, 0.1, 0.1)
+    love.graphics.rectangle("fill", barX, barY, barW, barH)
+
+    local ratio = self.hp / self.maxHp
+    local r, g
+    if ratio > 0.5 then
+        r = 1 - (ratio - 0.5) * 2
+        g = 1
+    else
+        r = 1
+        g = ratio * 2
+    end
+    love.graphics.setColor(r, g, 0.1)
+    love.graphics.rectangle("fill", barX, barY, barW * ratio, barH)
 end
 
 return EnemyPlanet

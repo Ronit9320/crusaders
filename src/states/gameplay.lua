@@ -42,8 +42,11 @@ function Gameplay:enter()
 
     self.minimap = Minimap.new()
 
+    self.startTime = love.timer.getTime()
     self.scrapCount = 0
+    self.totalScrapsCollected = 0
     self.money = 1000
+    self.moneySpent = 0
     self.defense = PlanetDefense.new()
     self.shop = Shop.new()
     self.nearPlanet = false
@@ -161,6 +164,20 @@ function Gameplay:update(dt)
                 end
             end
         end
+        if bullet.alive then
+            for _, ep in ipairs(self.enemyPlanets) do
+                if ep.alive then
+                    local dx = bullet.x - ep.x
+                    local dy = bullet.y - ep.y
+                    local dist = math.sqrt(dx * dx + dy * dy)
+                    if dist < bullet.radius + ep.radius then
+                        ep:takeDamage(Constants.BULLET_DAMAGE_TO_COLONY)
+                        bullet.alive = false
+                        break
+                    end
+                end
+            end
+        end
     end
 
     for _, enemy in ipairs(self.enemies) do
@@ -195,6 +212,7 @@ function Gameplay:update(dt)
             if dist < scrap.radius + self.player.radius then
                 scrap.collected = true
                 self.scrapCount = self.scrapCount + 1
+                self.totalScrapsCollected = self.totalScrapsCollected + 1
             end
         end
     end
@@ -229,6 +247,18 @@ function Gameplay:update(dt)
     end
 
     self:cleanup()
+
+    local allDead = true
+    for _, ep in ipairs(self.enemyPlanets) do
+        if ep.alive then allDead = false; break end
+    end
+    if allDead then
+        Game.stateManager:switchTo("victory", {
+            timeSurvived = love.timer.getTime() - self.startTime,
+            scrapsCollected = self.totalScrapsCollected,
+            moneySpent = self.moneySpent,
+        })
+    end
 end
 
 function Gameplay:cleanup()
@@ -359,6 +389,7 @@ function Gameplay:mousepressed(x, y, button)
 
     local success, newMoney, itemIndex, newLevel = self.shop:tryBuy(self.money)
     if success then
+        self.moneySpent = self.moneySpent + (self.money - newMoney)
         self.money = newMoney
         self:applyUpgrade(itemIndex, newLevel)
     end

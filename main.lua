@@ -5,9 +5,11 @@ function love.load()
 
     local GameplayState = require("src.states.gameplay")
     local GameOverState = require("src.states.gameover")
+    local VictoryState = require("src.states.victory")
 
     Game.stateManager:register("gameplay", GameplayState)
     Game.stateManager:register("gameover", GameOverState)
+    Game.stateManager:register("victory", VictoryState)
 
     Game.stateManager:switchTo("gameplay")
 end
