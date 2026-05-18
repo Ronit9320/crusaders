@@ -151,6 +151,7 @@ end
 --- Increases max hull integrity.
 function Player:upgradeIntegrity()
     self.maxIntegrity = self.maxIntegrity + Constants.UPGRADE_INTEGRITY_AMOUNT
+    self.integrity = math.min(self.maxIntegrity, self.integrity + Constants.UPGRADE_INTEGRITY_AMOUNT)
 end
 
 --- Increases engine thrust power.
