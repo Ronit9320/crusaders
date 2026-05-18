@@ -33,7 +33,7 @@ function Gameplay:enter()
     self.minimap = Minimap.new()
 
     self.scrapCount = 0
-    self.money = 0
+    self.money = 1000
     self.defense = PlanetDefense.new()
     self.shop = Shop.new()
     self.nearPlanet = false
