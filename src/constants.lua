@@ -109,5 +109,10 @@ return {
     ESCALATION_GROWTH_TIME = 60.0,
     ESCALATION_WAVE_GROWTH = 1,
 
+    HUD_PANEL_ALPHA = 0.75,
+    HUD_PADDING = 10,
+    HUD_BAR_WIDTH = 180,
+    HUD_BAR_HEIGHT = 14,
+
     DEBUG = false,
 }

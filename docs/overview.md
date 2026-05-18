@@ -82,9 +82,9 @@ main.lua
 7. Bullets (player + enemy)
 8. Player ship
 9. `camera:unapply()` — return to screen space
-10. `drawUI()` — HUD (planet HP, scrap count, money, integrity %, fuel, speed)
+10. `hud:draw()` — HUD via `src/ui/hud.lua` (ship status panel, resources panel)
 11. Minimap overlay
-12. Attack wave warnings (pulsing text)
+12. Attack wave warnings (part of HUD, drawn by `hud:draw()`)
 13. Shop prompt ("Press E")
 14. Shop overlay (if open)
 

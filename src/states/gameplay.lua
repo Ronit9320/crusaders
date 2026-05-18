@@ -10,6 +10,7 @@ local EnemyPlanet = require("src.entities.enemyplanet")
 local PlanetDefense = require("src.systems.planetdefense")
 local Shop = require("src.ui.shop")
 local Minimap = require("src.ui.minimap")
+local Hud = require("src.ui.hud")
 local Gravity = require("src.systems.gravity")
 
 local Gameplay = {}
@@ -42,6 +43,7 @@ function Gameplay:enter()
     end
 
     self.minimap = Minimap.new()
+    self.hud = Hud.new()
 
     self.startTime = love.timer.getTime()
     self.elapsedTime = 0
@@ -323,15 +325,15 @@ function Gameplay:draw()
 
     self.camera:unapply()
 
-    self:drawUI()
     self.minimap:draw(self.player, self.planet, self.enemyPlanets, self.enemies)
 
+    local warnings = {}
     for _, ep in ipairs(self.enemyPlanets) do
         if ep.warningActive then
-            love.graphics.setColor(1, 0.2, 0.2, ep.warningAlpha)
-            love.graphics.printf("INCOMING ATTACK FROM " .. ep.name, 0, Constants.WINDOW_HEIGHT / 2 - 80, Constants.WINDOW_WIDTH, "center")
+            table.insert(warnings, { name = ep.name, alpha = ep.warningAlpha })
         end
     end
+    self.hud:draw(self.player, self.planet, self.scrapCount, self.money, warnings)
 
     if self.nearPlanet and not self.shop:isOpen() then
         self.shop:drawPrompt()
@@ -358,18 +360,6 @@ function Gameplay:drawBackground()
             love.graphics.draw(self.background, x, y)
         end
     end
-end
-
-function Gameplay:drawUI()
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.print("Planet HP: " .. self.planet.hp .. "/" .. self.planet.maxHp, 10, 10)
-    love.graphics.print("Scraps: " .. self.scrapCount, 10, 30)
-    love.graphics.print("Money: " .. self.money, 10, 50)
-    love.graphics.print("Integrity: " .. math.floor(self.player.integrity / self.player.maxIntegrity * 100) .. "%", 10, 70)
-    love.graphics.print("Fuel: " .. string.format("%.2f", self.player.fuel) .. " / " .. self.player.maxFuel .. " t", 10, 90)
-
-    local speed = math.sqrt(self.player.vx * self.player.vx + self.player.vy * self.player.vy)
-    love.graphics.print("Speed: " .. math.floor(speed), 10, 110)
 end
 
 function Gameplay:keypressed(key)
