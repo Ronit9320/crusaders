@@ -35,18 +35,24 @@ end
 --- @param y number
 --- @param spriteIndex number 1 or 2
 --- @param difficulty number Spawn rate escalation multiplier and HP scaling.
-function EnemyPlanet.new(x, y, spriteIndex, difficulty)
+--- @param colonyName string Display name for warnings.
+function EnemyPlanet.new(x, y, spriteIndex, difficulty, colonyName)
     local self = setmetatable({}, EnemyPlanet)
     self.x = x
     self.y = y
     self.radius = Constants.ENEMY_PLANET_RADIUS
     self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
     self.difficulty = difficulty or 1.0
+    self.name = colonyName or "COLONY"
     self.alive = true
     self.maxHp = getMaxHp(self.difficulty)
     self.hp = self.maxHp
     self.spawnTimer = love.math.random() * Constants.ENEMY_SPAWN_INTERVAL_START
     self.elapsedTime = 0
+    self.waveTimer = love.math.random() * Constants.ESCALATION_WAVE_INTERVAL
+    self.waveInterval = Constants.ESCALATION_WAVE_INTERVAL
+    self.warningActive = false
+    self.warningAlpha = 0
     self.spriteIndex = spriteIndex or 1
     self.frame = 1
     self.frameTimer = 0
@@ -61,6 +67,15 @@ function EnemyPlanet:getSpawnInterval()
     return math.max(Constants.ENEMY_SPAWN_INTERVAL_MIN, Constants.ENEMY_SPAWN_INTERVAL_START - escalations * step)
 end
 
+--- Returns the number of enemies in the next wave based on global elapsed time.
+--- @param globalElapsed number
+--- @return number
+function EnemyPlanet:getWaveSize(globalElapsed)
+    local growthSteps = math.floor(globalElapsed / Constants.ESCALATION_GROWTH_TIME)
+    local baseSize = math.min(Constants.ESCALATION_WAVE_MAX, Constants.ESCALATION_WAVE_SIZE + growthSteps * Constants.ESCALATION_WAVE_GROWTH)
+    return math.max(1, math.floor(baseSize * self.difficulty + 0.5))
+end
+
 --- Applies damage. Sets alive = false when HP reaches 0.
 --- @param amount number
 function EnemyPlanet:takeDamage(amount)
@@ -72,10 +87,11 @@ function EnemyPlanet:takeDamage(amount)
     end
 end
 
---- Updates the spawn timer and animation frame. Skips spawning when dead.
+--- Updates spawn timer, wave timer, and animation frame. Skips when dead.
 --- @param dt number
 --- @param enemies table List to insert spawned enemies into.
-function EnemyPlanet:update(dt, enemies)
+--- @param globalElapsed number Game-wide elapsed time for wave scaling.
+function EnemyPlanet:update(dt, enemies, globalElapsed)
     self.elapsedTime = self.elapsedTime + dt
     self.frameTimer = self.frameTimer + dt
     if self.frameTimer >= Constants.ENEMY_PLANET_FRAME_DURATION then
@@ -86,6 +102,9 @@ function EnemyPlanet:update(dt, enemies)
         end
     end
 
+    self.warningActive = false
+    self.warningAlpha = 0
+
     if not self.alive then return end
 
     local spawnInterval = self:getSpawnInterval()
@@ -94,6 +113,34 @@ function EnemyPlanet:update(dt, enemies)
         self.spawnTimer = 0
         local enemyType = love.math.random() < 0.3 and "bomber" or "fighter"
         table.insert(enemies, Enemy.new(enemyType, self.x, self.y))
+    end
+
+    self.waveTimer = self.waveTimer + dt
+    local timeToWave = self.waveInterval - self.waveTimer
+    if timeToWave <= 5 and timeToWave > 0 then
+        self.warningActive = true
+        if timeToWave > 4 then
+            self.warningAlpha = (5 - timeToWave) / 1
+        elseif timeToWave > 1 then
+            self.warningAlpha = 1
+        else
+            self.warningAlpha = timeToWave / 1
+        end
+    end
+
+    if self.waveTimer >= self.waveInterval then
+        self.waveTimer = 0
+        self.warningActive = false
+        self.warningAlpha = 0
+        local waveSize = self:getWaveSize(globalElapsed)
+        local fighterCount = math.floor(waveSize * 0.6 + 0.5)
+        local bomberCount = waveSize - fighterCount
+        for _ = 1, fighterCount do
+            table.insert(enemies, Enemy.new("fighter", self.x, self.y))
+        end
+        for _ = 1, bomberCount do
+            table.insert(enemies, Enemy.new("bomber", self.x, self.y))
+        end
     end
 end
 

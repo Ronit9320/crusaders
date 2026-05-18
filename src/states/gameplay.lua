@@ -28,8 +28,9 @@ function Gameplay:enter()
     self.fuelPickups = {}
     self.enemyPlanets = {}
 
-    for _, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
-        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.difficulty))
+    local colonyNames = { "COLONY ALPHA", "COLONY BETA", "COLONY GAMMA" }
+    for i, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
+        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.difficulty, colonyNames[i]))
         for _ = 1, Constants.FUEL_CANISTER_COUNT do
             local angle = love.math.random() * math.pi * 2
             local dist = love.math.random() * Constants.FUEL_CANISTER_SPREAD
@@ -43,6 +44,7 @@ function Gameplay:enter()
     self.minimap = Minimap.new()
 
     self.startTime = love.timer.getTime()
+    self.elapsedTime = 0
     self.scrapCount = 0
     self.totalScrapsCollected = 0
     self.money = 1000
@@ -68,6 +70,7 @@ function Gameplay:update(dt)
         return
     end
 
+    self.elapsedTime = self.elapsedTime + dt
     self.player:update(dt)
     if Game.stateManager.current.name ~= "gameplay" then
         return
@@ -87,7 +90,7 @@ function Gameplay:update(dt)
     end
 
     for _, ep in ipairs(self.enemyPlanets) do
-        ep:update(dt, self.enemies)
+        ep:update(dt, self.enemies, self.elapsedTime)
     end
 
     for _, enemy in ipairs(self.enemies) do
@@ -322,6 +325,13 @@ function Gameplay:draw()
 
     self:drawUI()
     self.minimap:draw(self.player, self.planet, self.enemyPlanets, self.enemies)
+
+    for _, ep in ipairs(self.enemyPlanets) do
+        if ep.warningActive then
+            love.graphics.setColor(1, 0.2, 0.2, ep.warningAlpha)
+            love.graphics.printf("INCOMING ATTACK FROM " .. ep.name, 0, Constants.WINDOW_HEIGHT / 2 - 80, Constants.WINDOW_WIDTH, "center")
+        end
+    end
 
     if self.nearPlanet and not self.shop:isOpen() then
         self.shop:drawPrompt()

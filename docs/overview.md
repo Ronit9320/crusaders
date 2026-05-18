@@ -1,6 +1,6 @@
 # vibe_v0 Overview
 
-A top-down space defense game built with Love2D. The player flies a ship around a 3000x3000 world, collects scrap from destroyed enemies, converts scrap to money at the home planet, and spends money on upgrades like the planet defense system.
+A top-down space defense game built with Love2D. The player flies a ship around an 8000x8000 world, collects scrap from destroyed enemies, converts scrap to money at the home planet, and spends money on upgrades. Three enemy colonies with escalating difficulty must be destroyed to win.
 
 ## Project Structure
 
@@ -13,10 +13,10 @@ A top-down space defense game built with Love2D. The player flies a ship around 
 │   └── planet/                   # Spritesheets for home and enemy planets
 ├── src/
 │   ├── constants.lua             # All tunable values in one place
-│   ├── entities/                 # Game object definitions (player, enemies, etc.)
-│   ├── systems/                  # Engine systems (camera, state manager, defense)
-│   ├── states/                   # Game states (gameplay, gameover)
-│   └── ui/                       # Interface overlays (shop)
+│   ├── entities/                 # Game object definitions (player, enemies, fuel, scrap)
+│   ├── systems/                  # Engine systems (camera, state manager, defense, gravity)
+│   ├── states/                   # Game states (gameplay, gameover, victory)
+│   └── ui/                       # Interface overlays (shop, minimap)
 └── docs/                         # This documentation
 ```
 
@@ -30,14 +30,17 @@ main.lua
         │     ├── player.lua          — ship movement, shooting, fuel, integrity
         │     ├── planet.lua          — home base with HP
         │     ├── bullet.lua          — projectiles (player + defense)
-        │     ├── enemy.lua           — basic & fast enemies
-        │     ├── enemyplanet.lua     — enemy spawners
+        │     ├── enemy.lua           — fighter & bomber enemies
+        │     ├── enemyplanet.lua     — destructible colonies, spawn + waves
         │     ├── scrap.lua           — money pickups
-        │     ├── planetdefense.lua   — auto-targeting turret system
-        │     └── shop.lua            — upgrade purchase overlay
-        └── "gameover" (gameover.lua)
-              └── restart prompt
-```
+        │     ├── fuelpickup.lua      — fuel canisters
+        │     ├── planetdefense.lua   — multi-target turret system with spread
+        │     ├── minimap.lua         — world overview overlay
+        │     └── shop.lua            — multi-item upgrade overlay
+        ├── "gameover" (gameover.lua)
+        │     └── restart prompt
+        └── "victory" (victory.lua)
+              └── stats + restart prompt
 
 ## Game Loop
 
@@ -45,37 +48,45 @@ main.lua
 
 1. Early return if shop is open (game paused)
 2. Check planet destruction → game over
-3. Update player (rotation, thrust, fuel drain, integrity, speed cap)
-4. Check if player integrity death triggered state switch
-5. Update camera (smooth follow)
-6. Update planet animation
-7. Handle player shooting (left mouse, fires in ship's facing direction)
-8. Update all bullets (movement + bounds check)
-9. Update enemy planets (spawn timer)
-10. Update all enemies (movement toward planet)
-11. Update defense system (targeting + bullet creation)
-12. Bullet-enemy collision (damage + scrap spawn)
-13. Enemy-planet collision (planet damage)
-14. Player-scrap collection
-15. Scrap-to-money conversion (at planet)
-16. Near-planet check (for shop prompt)
-17. Cleanup dead/collected objects
+3. Advance global elapsed time
+4. Update player (rotation, thrust, fuel drain, integrity, speed cap)
+5. Check if player integrity death triggered state switch
+6. Update camera (smooth follow)
+7. Update planet animation
+8. Handle player shooting (left mouse, fires in ship's facing direction)
+9. Update all bullets (movement + bounds check)
+10. Update enemy planets (spawn timer, wave timer, wave launch)
+11. Update all enemies (movement toward target)
+12. Update enemy bullets
+13. Apply gravity (affects player, bullets, enemies, scraps, fuel)
+14. Update defense system (fires at all enemies in range)
+15. Bullet-enemy collision (damage + scrap + fuel drops)
+16. Bullet-colony collision (damage colonies)
+17. Enemy-planet collision (planet damage)
+18. Enemy bullet-player collision (integrity damage)
+19. Player-scrap collection
+20. Player-fuel collection
+21. Scrap-to-money conversion (at planet)
+22. Near-planet check (for shop prompt)
+23. Cleanup dead/collected objects
+24. Victory check (all colonies dead)
 
 ### Draw Order (`Gameplay:draw()`)
 
 1. `camera:apply()` — enter world space
 2. `drawBackground()` — tiled world background (visible tiles only)
-3. Planet sprite
-4. Defense radius circle
-5. Enemy planets
-6. Scrap pickups
-7. Enemies
-8. Bullets
-9. Player ship
-10. `camera:unapply()` — return to screen space
-11. `drawUI()` — HUD (planet HP, scrap count, money, integrity %, fuel tonnes, speed)
-12. Shop prompt ("Press E")
-13. Shop overlay (if open)
+3. Planet sprite + defense radius
+4. Enemy planets (with HP bar or dead overlay)
+5. Scrap pickups + fuel canisters
+6. Enemies
+7. Bullets (player + enemy)
+8. Player ship
+9. `camera:unapply()` — return to screen space
+10. `drawUI()` — HUD (planet HP, scrap count, money, integrity %, fuel, speed)
+11. Minimap overlay
+12. Attack wave warnings (pulsing text)
+13. Shop prompt ("Press E")
+14. Shop overlay (if open)
 
 ## Controls
 
@@ -94,6 +105,7 @@ main.lua
 |------------|----------------------------------------------------|
 | `planet`   | Home planet HP reaches 0                           |
 | `integrity`| Player ship integrity reaches 0 (excessive speed)  |
+| victory    | All enemy colonies destroyed                       |
 
 ## Constants (`src/constants.lua`)
 
