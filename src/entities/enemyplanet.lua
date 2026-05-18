@@ -30,6 +30,7 @@ function EnemyPlanet.new(x, y, spriteIndex)
     self.x = x
     self.y = y
     self.radius = Constants.ENEMY_PLANET_RADIUS
+    self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
     self.spawnTimer = love.math.random() * Constants.ENEMY_PLANET_SPAWN_INTERVAL
     self.spriteIndex = spriteIndex or 1
     self.frame = 1

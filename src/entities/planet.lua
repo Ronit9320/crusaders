@@ -19,6 +19,7 @@ function Planet.new()
     self.x = Constants.WORLD_WIDTH / 2
     self.y = Constants.WORLD_HEIGHT / 2
     self.radius = Constants.PLANET_RADIUS
+    self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
     self.hp = Constants.PLANET_HP
     self.maxHp = Constants.PLANET_HP
     self.frame = 1

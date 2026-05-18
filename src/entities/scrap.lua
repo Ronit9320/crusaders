@@ -10,6 +10,8 @@ function Scrap.new(x, y)
     local self = setmetatable({}, Scrap)
     self.x = x
     self.y = y
+    self.vx = 0
+    self.vy = 0
     self.radius = Constants.SCRAP_RADIUS
     self.collected = false
     return self

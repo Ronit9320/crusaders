@@ -8,6 +8,7 @@ local Planet = require("src.entities.planet")
 local EnemyPlanet = require("src.entities.enemyplanet")
 local PlanetDefense = require("src.systems.planetdefense")
 local Shop = require("src.ui.shop")
+local Gravity = require("src.systems.gravity")
 
 local Gameplay = {}
 Gameplay.__index = Gameplay
@@ -74,6 +75,36 @@ function Gameplay:update(dt)
 
     for _, enemy in ipairs(self.enemies) do
         enemy:update(dt)
+    end
+
+    do
+        local gravityPlanets = {
+            { x = self.planet.x, y = self.planet.y, gravityRadius = Constants.HOME_PLANET_GRAVITY_RADIUS, gravityStrength = Constants.GRAVITY_STRENGTH },
+        }
+        for _, ep in ipairs(self.enemyPlanets) do
+            table.insert(gravityPlanets, { x = ep.x, y = ep.y, gravityRadius = Constants.ENEMY_PLANET_GRAVITY_RADIUS, gravityStrength = Constants.GRAVITY_STRENGTH })
+        end
+
+        local objects = {}
+        table.insert(objects, self.player)
+        for _, bullet in ipairs(self.bullets) do
+            if bullet.alive then table.insert(objects, bullet) end
+        end
+        for _, enemy in ipairs(self.enemies) do
+            if enemy.alive then table.insert(objects, enemy) end
+        end
+        for _, scrap in ipairs(self.scraps) do
+            if not scrap.collected then table.insert(objects, scrap) end
+        end
+
+        Gravity.apply(dt, gravityPlanets, objects)
+
+        for _, scrap in ipairs(self.scraps) do
+            if not scrap.collected then
+                scrap.x = scrap.x + scrap.vx * dt
+                scrap.y = scrap.y + scrap.vy * dt
+            end
+        end
     end
 
     self.defense:update(dt, self.enemies, self.bullets, self.planet.x, self.planet.y)

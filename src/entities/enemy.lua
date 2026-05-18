@@ -46,6 +46,9 @@ function Enemy.new(type, spawnX, spawnY)
         end
     end
 
+    self.vx = 0
+    self.vy = 0
+
     return self
 end
 
@@ -59,9 +62,20 @@ function Enemy:update(dt)
     local dist = math.sqrt(dx * dx + dy * dy)
 
     if dist > 0 then
-        self.x = self.x + (dx / dist) * self.speed * dt
-        self.y = self.y + (dy / dist) * self.speed * dt
+        local nx = dx / dist
+        local ny = dy / dist
+        self.vx = self.vx + nx * self.speed * 3 * dt
+        self.vy = self.vy + ny * self.speed * 3 * dt
     end
+
+    local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+    if speed > self.speed then
+        self.vx = (self.vx / speed) * self.speed
+        self.vy = (self.vy / speed) * self.speed
+    end
+
+    self.x = self.x + self.vx * dt
+    self.y = self.y + self.vy * dt
 end
 
 --- Applies damage. Marks dead if HP reaches 0.
