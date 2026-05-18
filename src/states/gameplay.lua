@@ -20,6 +20,7 @@ function Gameplay:enter()
     self.planet = Planet.new()
     self.player = Player.new()
     self.bullets = {}
+    self.enemyBullets = {}
     self.enemies = {}
     self.scraps = {}
     self.enemyPlanets = {}
@@ -74,15 +75,19 @@ function Gameplay:update(dt)
     end
 
     for _, enemy in ipairs(self.enemies) do
-        enemy:update(dt)
+        enemy:update(dt, self.player.x, self.player.y, self.enemyBullets)
+    end
+
+    for _, bullet in ipairs(self.enemyBullets) do
+        bullet:update(dt)
     end
 
     do
         local gravityPlanets = {
-            { x = self.planet.x, y = self.planet.y, gravityRadius = Constants.HOME_PLANET_GRAVITY_RADIUS, gravityStrength = Constants.GRAVITY_STRENGTH },
+            { x = self.planet.x, y = self.planet.y, gravityRadius = Constants.HOME_PLANET_GRAVITY_RADIUS, gravityStrength = self.planet.gravityStrength },
         }
         for _, ep in ipairs(self.enemyPlanets) do
-            table.insert(gravityPlanets, { x = ep.x, y = ep.y, gravityRadius = Constants.ENEMY_PLANET_GRAVITY_RADIUS, gravityStrength = Constants.GRAVITY_STRENGTH })
+            table.insert(gravityPlanets, { x = ep.x, y = ep.y, gravityRadius = Constants.ENEMY_PLANET_GRAVITY_RADIUS, gravityStrength = ep.gravityStrength })
         end
 
         local objects = {}
@@ -120,7 +125,9 @@ function Gameplay:update(dt)
                         enemy:takeDamage(1)
                         bullet.alive = false
                         if not enemy.alive then
-                            table.insert(self.scraps, Scrap.new(enemy.x, enemy.y))
+                            for _ = 1, enemy.scrapDrop do
+                                table.insert(self.scraps, Scrap.new(enemy.x, enemy.y))
+                            end
                         end
                         break
                     end
@@ -137,6 +144,18 @@ function Gameplay:update(dt)
             if dist < enemy.radius + self.planet.radius then
                 self.planet:takeDamage(enemy.damage)
                 enemy.alive = false
+            end
+        end
+    end
+
+    for _, bullet in ipairs(self.enemyBullets) do
+        if bullet.alive then
+            local dx = bullet.x - self.player.x
+            local dy = bullet.y - self.player.y
+            local dist = math.sqrt(dx * dx + dy * dy)
+            if dist < bullet.radius + self.player.radius then
+                self.player.integrity = math.max(0, self.player.integrity - Constants.FIGHTER_BULLET_INTEGRITY_DAMAGE)
+                bullet.alive = false
             end
         end
     end
@@ -188,6 +207,7 @@ function Gameplay:cleanup()
     end
 
     keepAlive(self.bullets)
+    keepAlive(self.enemyBullets)
     keepAlive(self.enemies)
     keepAlive(self.scraps)
 end
@@ -213,6 +233,10 @@ function Gameplay:draw()
     end
 
     for _, bullet in ipairs(self.bullets) do
+        bullet:draw(self.camera)
+    end
+
+    for _, bullet in ipairs(self.enemyBullets) do
         bullet:draw(self.camera)
     end
 

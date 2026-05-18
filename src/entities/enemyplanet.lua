@@ -54,8 +54,8 @@ function EnemyPlanet:update(dt, enemies)
     self.spawnTimer = self.spawnTimer + dt
     if self.spawnTimer >= Constants.ENEMY_PLANET_SPAWN_INTERVAL then
         self.spawnTimer = 0
-        local type = love.math.random() < 0.3 and "fast" or "basic"
-        table.insert(enemies, Enemy.new(type, self.x, self.y))
+        local enemyType = love.math.random() < 0.3 and "bomber" or "fighter"
+        table.insert(enemies, Enemy.new(enemyType, self.x, self.y))
     end
 end
 
