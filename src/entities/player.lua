@@ -17,6 +17,11 @@ function Player.new()
     self.maxIntegrity = Constants.SHIP_INTEGRITY_MAX
     self.fuel = Constants.SHIP_FUEL_MAX
     self.maxFuel = Constants.SHIP_FUEL_MAX
+    self.thrust = Constants.PLAYER_THRUST
+    self.singleThrust = Constants.PLAYER_SINGLE_THRUST
+    self.bulletDamage = 1
+    self.bulletCooldown = Constants.BULLET_COOLDOWN
+    self.bulletSpeed = Constants.BULLET_SPEED
     return self
 end
 
@@ -48,9 +53,9 @@ function Player:update(dt)
 
     if hasFuel then
         if love.keyboard.isDown("w") then
-            thrustForward = Constants.PLAYER_THRUST
+            thrustForward = self.thrust
         elseif love.keyboard.isDown("a") or love.keyboard.isDown("d") then
-            thrustForward = Constants.PLAYER_SINGLE_THRUST
+            thrustForward = self.singleThrust
         end
 
         if thrustForward > 0 then
@@ -134,7 +139,35 @@ end
 
 --- Resets the shoot cooldown.
 function Player:resetCooldown()
-    self.cooldown = Constants.BULLET_COOLDOWN
+    self.cooldown = self.bulletCooldown
+end
+
+--- Increases max fuel capacity and refills.
+function Player:upgradeFuel()
+    self.maxFuel = self.maxFuel + Constants.UPGRADE_FUEL_AMOUNT
+    self.fuel = self.maxFuel
+end
+
+--- Increases max hull integrity.
+function Player:upgradeIntegrity()
+    self.maxIntegrity = self.maxIntegrity + Constants.UPGRADE_INTEGRITY_AMOUNT
+end
+
+--- Increases engine thrust power.
+function Player:upgradeThrust()
+    self.thrust = self.thrust + Constants.UPGRADE_THRUST_AMOUNT
+    self.singleThrust = self.singleThrust + Constants.UPGRADE_THRUST_AMOUNT
+end
+
+--- Recalculates weapon stats based on upgrade level.
+--- @param level number 0-3
+function Player:upgradeWeapons(level)
+    self.bulletDamage = 1
+    self.bulletCooldown = Constants.BULLET_COOLDOWN
+    self.bulletSpeed = Constants.BULLET_SPEED
+    if level >= 1 then self.bulletDamage = 2 end
+    if level >= 2 then self.bulletCooldown = Constants.BULLET_COOLDOWN * 0.7 end
+    if level >= 3 then self.bulletSpeed = Constants.BULLET_SPEED * 1.2 end
 end
 
 return Player

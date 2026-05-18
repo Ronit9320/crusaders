@@ -25,13 +25,15 @@ EnemyPlanet.__index = EnemyPlanet
 --- @param x number
 --- @param y number
 --- @param spriteIndex number 1 or 2
-function EnemyPlanet.new(x, y, spriteIndex)
+--- @param spawnInterval number|nil Seconds between spawns.
+function EnemyPlanet.new(x, y, spriteIndex, spawnInterval)
     local self = setmetatable({}, EnemyPlanet)
     self.x = x
     self.y = y
     self.radius = Constants.ENEMY_PLANET_RADIUS
     self.gravityStrength = self.radius * Constants.GRAVITY_SCALE_FACTOR
-    self.spawnTimer = love.math.random() * Constants.ENEMY_PLANET_SPAWN_INTERVAL
+    self.spawnInterval = spawnInterval or Constants.ENEMY_PLANET_SPAWN_INTERVAL
+    self.spawnTimer = love.math.random() * self.spawnInterval
     self.spriteIndex = spriteIndex or 1
     self.frame = 1
     self.frameTimer = 0
@@ -52,7 +54,7 @@ function EnemyPlanet:update(dt, enemies)
     end
 
     self.spawnTimer = self.spawnTimer + dt
-    if self.spawnTimer >= Constants.ENEMY_PLANET_SPAWN_INTERVAL then
+    if self.spawnTimer >= self.spawnInterval then
         self.spawnTimer = 0
         local enemyType = love.math.random() < 0.3 and "bomber" or "fighter"
         table.insert(enemies, Enemy.new(enemyType, self.x, self.y))

@@ -8,6 +8,7 @@ local Planet = require("src.entities.planet")
 local EnemyPlanet = require("src.entities.enemyplanet")
 local PlanetDefense = require("src.systems.planetdefense")
 local Shop = require("src.ui.shop")
+local Minimap = require("src.ui.minimap")
 local Gravity = require("src.systems.gravity")
 
 local Gameplay = {}
@@ -26,8 +27,10 @@ function Gameplay:enter()
     self.enemyPlanets = {}
 
     for _, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
-        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite))
+        table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.spawnInterval))
     end
+
+    self.minimap = Minimap.new()
 
     self.scrapCount = 0
     self.money = 0
@@ -62,7 +65,7 @@ function Gameplay:update(dt)
 
     if love.mouse.isDown(1) and self.player:canShoot() then
         local angle = self.player.angle
-        table.insert(self.bullets, Bullet.new(self.player.x, self.player.y, angle))
+        table.insert(self.bullets, Bullet.new(self.player.x, self.player.y, angle, nil, self.player.bulletSpeed))
         self.player:resetCooldown()
     end
 
@@ -122,7 +125,7 @@ function Gameplay:update(dt)
                     local dy = bullet.y - enemy.y
                     local dist = math.sqrt(dx * dx + dy * dy)
                     if dist < bullet.radius + enemy.radius then
-                        enemy:takeDamage(1)
+                        enemy:takeDamage(self.player.bulletDamage)
                         bullet.alive = false
                         if not enemy.alive then
                             for _ = 1, enemy.scrapDrop do
@@ -245,12 +248,13 @@ function Gameplay:draw()
     self.camera:unapply()
 
     self:drawUI()
+    self.minimap:draw(self.player, self.planet, self.enemyPlanets, self.enemies)
 
     if self.nearPlanet and not self.shop:isOpen() then
         self.shop:drawPrompt()
     end
 
-    self.shop:draw(self.money, self.defense.level)
+    self.shop:draw(self.money)
 end
 
 function Gameplay:drawBackground()
@@ -296,16 +300,38 @@ function Gameplay:keypressed(key)
     if key == "escape" then
         self.shop:close()
     end
+
+    if self.shop:isOpen() then
+        if key == "left" then
+            self.shop:navLeft()
+        elseif key == "right" then
+            self.shop:navRight()
+        end
+    end
 end
 
 function Gameplay:mousepressed(x, y, button)
     if not self.shop:isOpen() then return end
     if button ~= 1 then return end
 
-    local success, newMoney, newLevel = self.shop:tryBuy(self.money, self.defense.level)
+    local success, newMoney, itemIndex, newLevel = self.shop:tryBuy(self.money)
     if success then
         self.money = newMoney
-        self.defense.level = newLevel
+        self:applyUpgrade(itemIndex, newLevel)
+    end
+end
+
+function Gameplay:applyUpgrade(itemIndex, level)
+    if itemIndex == 1 then
+        self.defense.level = level
+    elseif itemIndex == 2 then
+        self.player:upgradeFuel()
+    elseif itemIndex == 3 then
+        self.player:upgradeIntegrity()
+    elseif itemIndex == 4 then
+        self.player:upgradeThrust()
+    elseif itemIndex == 5 then
+        self.player:upgradeWeapons(level)
     end
 end
 

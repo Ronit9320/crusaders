@@ -1,8 +1,8 @@
 return {
     WINDOW_WIDTH = 1280,
     WINDOW_HEIGHT = 720,
-    WORLD_WIDTH = 3000,
-    WORLD_HEIGHT = 3000,
+    WORLD_WIDTH = 8000,
+    WORLD_HEIGHT = 8000,
 
     PLANET_RADIUS = 60,
     PLANET_HP = 100,
@@ -55,8 +55,9 @@ return {
     ENEMY_PLANET_FRAME_WIDTH = 100,
     ENEMY_PLANET_FRAME_HEIGHT = 100,
     ENEMY_PLANET_POSITIONS = {
-        { x = 400, y = 400, sprite = 1 },
-        { x = 2600, y = 2600, sprite = 2 },
+        { x = 1500, y = 1500, sprite = 1, spawnInterval = 6.0 },
+        { x = 6500, y = 1500, sprite = 2, spawnInterval = 4.0 },
+        { x = 4000, y = 7000, sprite = 1, spawnInterval = 3.0 },
     },
 
     SCRAP_RADIUS = 5,
@@ -76,6 +77,14 @@ return {
     DEFENSE_COST_BASE = 10,
     DEFENSE_COST_UPGRADE = 15,
     DEFENSE_MAX_LEVEL = 3,
+
+    UPGRADE_FUEL_AMOUNT = 25,
+    UPGRADE_INTEGRITY_AMOUNT = 200,
+    UPGRADE_THRUST_AMOUNT = 40,
+    UPGRADE_FUEL_COST = 15,
+    UPGRADE_INTEGRITY_COST = 20,
+    UPGRADE_THRUST_COST = 25,
+    UPGRADE_WEAPONS_COST = 20,
 
     DEBUG = false,
 }
