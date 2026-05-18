@@ -25,13 +25,21 @@ function PlanetDefense:getRadius()
     return Constants.DEFENSE_RADIUS_BASE + (self.level - 1) * Constants.DEFENSE_RADIUS_PER_LEVEL
 end
 
+--- Returns the fire rate for the current level.
+--- @return number
+function PlanetDefense:getFireRate()
+    if self.level >= 3 then return Constants.DEFENSE_FIRE_RATE_L3 end
+    if self.level >= 2 then return Constants.DEFENSE_FIRE_RATE_L2 end
+    return Constants.DEFENSE_FIRE_RATE
+end
+
 --- Returns the max level.
 --- @return number
 function PlanetDefense:getMaxLevel()
     return Constants.DEFENSE_MAX_LEVEL
 end
 
---- Fires at the nearest enemy within radius if cooldown is ready.
+--- Fires at every enemy in range simultaneously.
 --- @param dt number
 --- @param enemies table
 --- @param bullets table
@@ -43,9 +51,8 @@ function PlanetDefense:update(dt, enemies, bullets, planetX, planetY)
     self.cooldown = math.max(0, self.cooldown - dt)
     if self.cooldown > 0 then return end
 
+    self.cooldown = self:getFireRate()
     local radius = self:getRadius()
-    local nearest = nil
-    local nearestDist = nil
 
     for _, enemy in ipairs(enemies) do
         if enemy.alive then
@@ -53,18 +60,16 @@ function PlanetDefense:update(dt, enemies, bullets, planetX, planetY)
             local dy = enemy.y - planetY
             local dist = math.sqrt(dx * dx + dy * dy)
             if dist <= radius then
-                if not nearest or dist < nearestDist then
-                    nearest = enemy
-                    nearestDist = dist
+                local baseAngle = math.atan2(dy, dx)
+                if self.level >= 3 then
+                    table.insert(bullets, Bullet.new(planetX, planetY, baseAngle - Constants.DEFENSE_SPREAD_ANGLE, Constants.DEFENSE_BULLET_COLOR, Constants.DEFENSE_BULLET_SPEED))
+                    table.insert(bullets, Bullet.new(planetX, planetY, baseAngle, Constants.DEFENSE_BULLET_COLOR, Constants.DEFENSE_BULLET_SPEED))
+                    table.insert(bullets, Bullet.new(planetX, planetY, baseAngle + Constants.DEFENSE_SPREAD_ANGLE, Constants.DEFENSE_BULLET_COLOR, Constants.DEFENSE_BULLET_SPEED))
+                else
+                    table.insert(bullets, Bullet.new(planetX, planetY, baseAngle, Constants.DEFENSE_BULLET_COLOR, Constants.DEFENSE_BULLET_SPEED))
                 end
             end
         end
-    end
-
-    if nearest then
-        local angle = math.atan2(nearest.y - planetY, nearest.x - planetX)
-        table.insert(bullets, Bullet.new(planetX, planetY, angle, Constants.DEFENSE_BULLET_COLOR, Constants.DEFENSE_BULLET_SPEED))
-        self.cooldown = Constants.DEFENSE_FIRE_RATE
     end
 end
 
