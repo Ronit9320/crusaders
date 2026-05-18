@@ -4,6 +4,7 @@ local Player = require("src.entities.player")
 local Bullet = require("src.entities.bullet")
 local Enemy = require("src.entities.enemy")
 local Scrap = require("src.entities.scrap")
+local FuelPickup = require("src.entities.fuelpickup")
 local Planet = require("src.entities.planet")
 local EnemyPlanet = require("src.entities.enemyplanet")
 local PlanetDefense = require("src.systems.planetdefense")
@@ -24,10 +25,19 @@ function Gameplay:enter()
     self.enemyBullets = {}
     self.enemies = {}
     self.scraps = {}
+    self.fuelPickups = {}
     self.enemyPlanets = {}
 
     for _, pos in ipairs(Constants.ENEMY_PLANET_POSITIONS) do
         table.insert(self.enemyPlanets, EnemyPlanet.new(pos.x, pos.y, pos.sprite, pos.spawnInterval))
+        for _ = 1, Constants.FUEL_CANISTER_COUNT do
+            local angle = love.math.random() * math.pi * 2
+            local dist = love.math.random() * Constants.FUEL_CANISTER_SPREAD
+            table.insert(self.fuelPickups, FuelPickup.new(
+                pos.x + math.cos(angle) * dist,
+                pos.y + math.sin(angle) * dist
+            ))
+        end
     end
 
     self.minimap = Minimap.new()
@@ -104,6 +114,9 @@ function Gameplay:update(dt)
         for _, scrap in ipairs(self.scraps) do
             if not scrap.collected then table.insert(objects, scrap) end
         end
+        for _, fuel in ipairs(self.fuelPickups) do
+            if not fuel.collected then table.insert(objects, fuel) end
+        end
 
         Gravity.apply(dt, gravityPlanets, objects)
 
@@ -111,6 +124,12 @@ function Gameplay:update(dt)
             if not scrap.collected then
                 scrap.x = scrap.x + scrap.vx * dt
                 scrap.y = scrap.y + scrap.vy * dt
+            end
+        end
+        for _, fuel in ipairs(self.fuelPickups) do
+            if not fuel.collected then
+                fuel.x = fuel.x + fuel.vx * dt
+                fuel.y = fuel.y + fuel.vy * dt
             end
         end
     end
@@ -130,6 +149,11 @@ function Gameplay:update(dt)
                         if not enemy.alive then
                             for _ = 1, enemy.scrapDrop do
                                 table.insert(self.scraps, Scrap.new(enemy.x, enemy.y))
+                            end
+                            if enemy.type == "bomber" then
+                                table.insert(self.fuelPickups, FuelPickup.new(enemy.x, enemy.y))
+                            elseif enemy.type == "fighter" and love.math.random() < Constants.FIGHTER_FUEL_DROP_CHANCE then
+                                table.insert(self.fuelPickups, FuelPickup.new(enemy.x, enemy.y))
                             end
                         end
                         break
@@ -175,6 +199,18 @@ function Gameplay:update(dt)
         end
     end
 
+    for _, fuel in ipairs(self.fuelPickups) do
+        if not fuel.collected then
+            local dx = fuel.x - self.player.x
+            local dy = fuel.y - self.player.y
+            local dist = math.sqrt(dx * dx + dy * dy)
+            if dist < fuel.radius + self.player.radius then
+                fuel.collected = true
+                self.player.fuel = math.min(self.player.maxFuel, self.player.fuel + Constants.FUEL_PICKUP_AMOUNT)
+            end
+        end
+    end
+
     do
         local dx = self.player.x - self.planet.x
         local dy = self.player.y - self.planet.y
@@ -213,6 +249,7 @@ function Gameplay:cleanup()
     keepAlive(self.enemyBullets)
     keepAlive(self.enemies)
     keepAlive(self.scraps)
+    keepAlive(self.fuelPickups)
 end
 
 function Gameplay:draw()
@@ -229,6 +266,12 @@ function Gameplay:draw()
 
     for _, scrap in ipairs(self.scraps) do
         scrap:draw(self.camera)
+    end
+
+    for _, fuel in ipairs(self.fuelPickups) do
+        if not fuel.collected then
+            fuel:draw(self.camera)
+        end
     end
 
     for _, enemy in ipairs(self.enemies) do
@@ -283,7 +326,7 @@ function Gameplay:drawUI()
     love.graphics.print("Scraps: " .. self.scrapCount, 10, 30)
     love.graphics.print("Money: " .. self.money, 10, 50)
     love.graphics.print("Integrity: " .. math.floor(self.player.integrity / self.player.maxIntegrity * 100) .. "%", 10, 70)
-    love.graphics.print("Fuel: " .. string.format("%.2f", self.player.fuel) .. " t", 10, 90)
+    love.graphics.print("Fuel: " .. string.format("%.2f", self.player.fuel) .. " / " .. self.player.maxFuel .. " t", 10, 90)
 
     local speed = math.sqrt(self.player.vx * self.player.vx + self.player.vy * self.player.vy)
     love.graphics.print("Speed: " .. math.floor(speed), 10, 110)
