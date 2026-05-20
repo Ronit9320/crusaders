@@ -33,6 +33,7 @@ function Player:update(dt)
     local enginesActive = 0
     local thrustForward = 0
     local rotation = 0
+    local speed
 
     if love.keyboard.isDown("a") then
         rotation = rotation - 1
@@ -45,7 +46,7 @@ function Player:update(dt)
     if love.keyboard.isDown("w") then
         enginesActive = enginesActive + 2
     end
-    local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+    speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
     local t = math.min(speed / Constants.PLAYER_MAX_SPEED, 1)
     local rotSpeed = Constants.PLAYER_ROTATION_SPEED * (1 - t) + Constants.PLAYER_ROTATION_MIN_SPEED * t
 
@@ -64,7 +65,7 @@ function Player:update(dt)
         end
     end
 
-    local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+    speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
     if speed > Constants.PLAYER_MAX_SPEED then
         self.vx = (self.vx / speed) * Constants.PLAYER_MAX_SPEED
         self.vy = (self.vy / speed) * Constants.PLAYER_MAX_SPEED
@@ -96,7 +97,7 @@ function Player:update(dt)
     end
 
     do
-        local speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
+        speed = math.sqrt(self.vx * self.vx + self.vy * self.vy)
         local loss = 0
         if speed > 1000 then
             loss = 30 * dt

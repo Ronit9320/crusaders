@@ -37,7 +37,7 @@ Sets color to white (to avoid tinting the sprite) and draws the current animatio
 ## HP and Destruction
 
 - Starts at `PLANET_HP` (100).
-- Damaged by enemies that reach the planet (deals `ENEMY_DAMAGE` per hit).
+- Damaged by enemies that reach the planet (fighters deal 5 damage, bombers deal 25 damage).
 - When destroyed (`hp ≤ 0`), `Gameplay:update()` switches to game over with `{ reason = "planet" }`.
 - There is no repair mechanic.
 

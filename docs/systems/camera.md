@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Transforms world-space coordinates to screen-space so the viewport follows the player. The world is 3000x3000 but the window is 1280x720 — the camera bridges the two.
+Transforms world-space coordinates to screen-space so the viewport follows the player. The world is 8000x8000 but the window is 1280x720 — the camera bridges the two.
 
 ## How It Works
 
@@ -27,7 +27,7 @@ Pops the transform. Must be called after all world-space draws and before screen
 
 ## World Space vs Screen Space
 
-- **World space**: The 3000x3000 game world. All entities store position in world space. Draw calls between `apply()`/`unapply()` are in world space.
+- **World space**: The 8000x8000 game world. All entities store position in world space. Draw calls between `apply()`/`unapply()` are in world space.
 - **Screen space**: The 1280x720 window. UI elements (HUD, shop) draw after `unapply()`.
 
 Converting between them:

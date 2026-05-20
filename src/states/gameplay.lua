@@ -17,6 +17,7 @@ local Gameplay = {}
 Gameplay.__index = Gameplay
 
 local TILE_SIZE = 200
+local background = love.graphics.newImage("assets/background/background.png")
 
 function Gameplay:enter()
     self.camera = Camera.new()
@@ -54,7 +55,6 @@ function Gameplay:enter()
     self.defense = PlanetDefense.new()
     self.shop = Shop.new()
     self.nearPlanet = false
-    self.background = love.graphics.newImage("assets/background/background.png")
 
     return self
 end
@@ -357,7 +357,7 @@ function Gameplay:drawBackground()
 
     for x = startX, endX - TILE_SIZE, TILE_SIZE do
         for y = startY, endY - TILE_SIZE, TILE_SIZE do
-            love.graphics.draw(self.background, x, y)
+            love.graphics.draw(background, x, y)
         end
     end
 end
